@@ -108,12 +108,14 @@ export function renderUserDetails(user) {
     const container = document.getElementById("user-details-header");
     if (!container) return;
 
+    const githubProfileUrl = `https://github.com/${user.login}`;
+
     container.innerHTML = `
         <img src="${user.avatar}" alt="${user.login}" />
         <div class="details-info">
             <h1>${user.login}</h1>
             <p><strong>ID:</strong> ${user.id}</p>
-            <p><a href="${user.url || '#'}" target="_blank" style="color: #3498db; text-decoration: none;">View on GitHub →</a></p>
+            <p><a href="${githubProfileUrl}" target="_blank" style="color: #3498db; text-decoration: none;">View on GitHub →</a></p>
         </div>
     `;
 }

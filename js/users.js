@@ -30,6 +30,11 @@ export function previousPage() {
         currentPage--;
     }
 }
+
+export function resetPage() {
+    currentPage = 1;
+}
+
 export function filterUsersByLoginLength(users, minimumLength) {
     return users.filter(user => user.login.length >= minimumLength);
 }

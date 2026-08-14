@@ -1,6 +1,6 @@
 import { fetchUsers } from "./api.js";
 import { renderUsers, renderPagination, showLoading, hideLoading, showError } from "./ui.js";
-import { filterUsersByLoginLength } from "./users.js";
+import { filterUsersByLoginLength, resetPage } from "./users.js";
 
 import {
     getPaginatedUsers,
@@ -13,18 +13,6 @@ import {
 let allUsers = [];
 let filteredUsers = [];
 
-allUsers = await fetchUsers();
-
-filteredUsers = filterUsersByLoginLength(allUsers, 4);
-
-document.getElementById("user-count").textContent =
-    `Users fetched: ${allUsers.length}`;
-
-document.getElementById("filtered-count").textContent =
-    `Users remaining: ${filteredUsers.length}`;
-
-renderPage();
-
 async function loadUsers() {
     try {
         showLoading();
@@ -33,8 +21,13 @@ async function loadUsers() {
 
         hideLoading();
 
+        filteredUsers = filterUsersByLoginLength(allUsers, 4);
+
         document.getElementById("user-count").textContent =
             `Users fetched: ${allUsers.length}`;
+
+        document.getElementById("filtered-count").textContent =
+            `Users remaining: ${filteredUsers.length}`;
 
         renderPage();
 
@@ -71,7 +64,7 @@ function handleUserClick(user) {
 }
 
 document.getElementById("next-btn").addEventListener("click", () => {
-    nextPage(allUsers);
+    nextPage(filteredUsers);
     renderPage();
 });
 
@@ -89,6 +82,8 @@ document.getElementById("apply-filter").addEventListener("click", () => {
         allUsers,
         minimumLength
     );
+
+    resetPage();
 
     document.getElementById("filtered-count").textContent =
         `Users remaining: ${filteredUsers.length}`;

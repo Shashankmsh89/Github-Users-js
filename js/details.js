@@ -32,9 +32,10 @@ async function initializePage() {
         hideDetailsError();
 
         // Fetch followers and repos in parallel using Promise.all()
+        // Construct API URLs from login
         const [followers, repos] = await Promise.all([
-            fetchUserFollowers(selectedUser.followers_url),
-            fetchUserRepos(selectedUser.repos_url)
+            fetchUserFollowers(selectedUser.login),
+            fetchUserRepos(selectedUser.login)
         ]);
 
         // Hide loading state
