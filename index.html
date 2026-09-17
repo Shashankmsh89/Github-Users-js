@@ -16,11 +16,14 @@
         <p id="user-count">Users fetched: 0</p>
 
         <div id="filter">
-            <label for="login-length">Minimum login length:</label>
+            <label for="user-search">Search users:</label>
+            <input type="search" id="user-search" placeholder="Search by login" />
 
-            <input type="number" id="login-length" min="4" value="4" />
-
-            <button id="apply-filter">Apply</button>
+            <label for="sort-direction">Sort:</label>
+            <select id="sort-direction">
+                <option value="asc">A → Z</option>
+                <option value="desc">Z → A</option>
+            </select>
         </div>
 
         <p id="filtered-count">Users remaining: 0</p>
@@ -66,6 +69,8 @@
         </div>
 
         <div id="users-container"></div>
+
+        <p><a href="./repositories.html">Search repositories</a></p>
     </main>
 
     <div id="pagination">

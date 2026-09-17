@@ -1,23 +1,22 @@
 import { ApiService } from "./api.js";
 import { renderUsers, renderPagination, showLoading, hideLoading, showError } from "./ui.js";
-import { filterUsersByLoginLength, resetPage, getPaginatedUsers, getCurrentPage, getTotalPages, nextPage, previousPage } from "./users.js";
-let allUsers = [];
-let filteredUsers = [];
+import { resetPage, getCurrentPage, nextPage, previousPage, USERS_PER_PAGE } from "./users.js";
+let currentUsers = [];
+let searchText = "";
+let sortDirection = "asc";
 const apiService = new ApiService();
-async function loadUsers() {
+async function loadUsers(page) {
     showLoading();
     try {
-        const result = await apiService.fetchUsers();
+        const result = await apiService.fetchUsers(page);
         if (!result.success) {
             showError(result.error);
             getElement("user-count").textContent = result.error;
             getElement("users-container").innerHTML = "";
             return;
         }
-        allUsers = result.data;
-        filteredUsers = filterUsersByLoginLength(allUsers, 4);
-        getElement("user-count").textContent = `Users fetched: ${allUsers.length}`;
-        getElement("filtered-count").textContent = `Users remaining: ${filteredUsers.length}`;
+        currentUsers = result.data;
+        getElement("user-count").textContent = `Users fetched: ${currentUsers.length}`;
         renderPage();
     }
     catch (error) {
@@ -38,8 +37,16 @@ function getElement(id) {
     return element;
 }
 function renderPage() {
-    renderUsers(getPaginatedUsers(filteredUsers), handleUserClick);
-    renderPagination(getCurrentPage(), getTotalPages(filteredUsers));
+    const visibleUsers = currentUsers
+        .filter((user) => user.login.toLowerCase().includes(searchText.toLowerCase()))
+        .slice()
+        .sort((first, second) => {
+        const comparison = first.login.localeCompare(second.login);
+        return sortDirection === "asc" ? comparison : -comparison;
+    });
+    getElement("filtered-count").textContent = `Users shown: ${visibleUsers.length}`;
+    renderUsers(visibleUsers, handleUserClick);
+    renderPagination(getCurrentPage(), currentUsers.length === USERS_PER_PAGE);
 }
 function handleUserClick(user) {
     sessionStorage.setItem("selectedUser", JSON.stringify(user));
@@ -47,20 +54,24 @@ function handleUserClick(user) {
 }
 getElement("next-btn").addEventListener("click", (event) => {
     event.preventDefault();
-    nextPage(filteredUsers);
-    renderPage();
+    if (currentUsers.length === USERS_PER_PAGE) {
+        nextPage(true);
+        void loadUsers(getCurrentPage());
+    }
 });
 getElement("previous-btn").addEventListener("click", (event) => {
     event.preventDefault();
     previousPage();
+    void loadUsers(getCurrentPage());
+});
+function handleSearchInput(event) {
+    searchText = event.target.value;
+    renderPage();
+}
+getElement("user-search").addEventListener("input", handleSearchInput);
+getElement("sort-direction").addEventListener("change", (event) => {
+    sortDirection = event.target.value;
     renderPage();
 });
-getElement("apply-filter").addEventListener("click", (event) => {
-    event.preventDefault();
-    const minimumLength = Number(getElement("login-length").value);
-    filteredUsers = filterUsersByLoginLength(allUsers, minimumLength);
-    resetPage();
-    getElement("filtered-count").textContent = `Users remaining: ${filteredUsers.length}`;
-    renderPage();
-});
-loadUsers();
+resetPage();
+void loadUsers(getCurrentPage());

@@ -21,6 +21,18 @@ export interface GitHubRepository {
     language: string | null;
 }
 
+export interface GitHubRepositorySearchItem extends GitHubRepository {
+    owner: {
+        login: string;
+    };
+}
+
+export interface GitHubRepositorySearchResponse {
+    total_count: number;
+    incomplete_results: boolean;
+    items: GitHubRepositorySearchItem[];
+}
+
 export type UserListItem = Pick<GitHubUser, "login" | "id"> & {
     avatar: string;
 };
@@ -38,6 +50,15 @@ export interface RepositoryItem {
     url: string;
     stars: number;
     language: string;
+}
+
+export interface RepositoryDisplayItem {
+    name: string;
+    description: string | null;
+    ownerLogin: string;
+    stars: number;
+    language: string | null;
+    url: string;
 }
 
 export type ApiResult<T> =
@@ -59,9 +80,9 @@ export async function apiRequest<T>(url: string): Promise<ApiResult<T>> {
 }
 
 export class ApiService {
-    async fetchUsers(): Promise<ApiResult<UserListItem[]>> {
+    async fetchUsers(page: number): Promise<ApiResult<UserListItem[]>> {
         const githubResult = await apiRequest<GitHubUser[]>(
-            "https://api.github.com/users?per_page=30"
+            `https://api.github.com/users?per_page=10&page=${page}`
         );
 
         let usersResult = githubResult;
@@ -81,6 +102,17 @@ export class ApiService {
                 avatar: user.avatar_url
             }))
         };
+    }
+
+    async searchRepositories(
+        query: string,
+        page: number
+    ): Promise<ApiResult<GitHubRepositorySearchResponse>> {
+        const url = new URL("https://api.github.com/search/repositories");
+        url.searchParams.set("q", query);
+        url.searchParams.set("page", String(page));
+        url.searchParams.set("per_page", "10");
+        return apiRequest<GitHubRepositorySearchResponse>(url.toString());
     }
 
     async fetchFollowers(login: string): Promise<ApiResult<FollowerItem[]>> {

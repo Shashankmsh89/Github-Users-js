@@ -1,4 +1,4 @@
-import { FollowerItem, RepositoryItem, UserListItem } from "./api.js";
+import { FollowerItem, RepositoryDisplayItem, RepositoryItem, UserListItem } from "./api.js";
 
 function getElement<T extends HTMLElement>(id: string): T {
     const element = document.getElementById(id);
@@ -58,10 +58,10 @@ export function renderUsers(
     });
 }
 
-export function renderPagination(currentPage: number, totalPages: number): void {
-    getElement("page-info").textContent = `Page ${currentPage} of ${totalPages}`;
+export function renderPagination(currentPage: number, hasNextPage: boolean): void {
+    getElement("page-info").textContent = `Page ${currentPage}`;
     getElement<HTMLButtonElement>("previous-btn").disabled = currentPage === 1;
-    getElement<HTMLButtonElement>("next-btn").disabled = currentPage === totalPages;
+    getElement<HTMLButtonElement>("next-btn").disabled = !hasNextPage;
 }
 
 export function showDetailsLoading(): void {
@@ -126,4 +126,41 @@ export function renderRepositories(repositories: RepositoryItem[]): void {
             <a href="${repository.url}" target="_blank">View Repository</a>
         </div>
     `).join("");
+}
+
+export function renderRepositorySearchResults(repositories: RepositoryDisplayItem[]): void {
+    const container = getElement("repository-results");
+    if (repositories.length === 0) {
+        container.innerHTML = '<div class="empty-message">No repositories found.</div>';
+        return;
+    }
+
+    container.innerHTML = repositories.map((repository) => `
+        <div class="item-card">
+            <h3>${repository.name}</h3>
+            <p>${repository.description ?? "No description"}</p>
+            <p><strong>Owner:</strong> ${repository.ownerLogin}</p>
+            <p><strong>Language:</strong> ${repository.language ?? "Unknown"}</p>
+            <p><strong>Stars:</strong> ${repository.stars}</p>
+            <a href="${repository.url}" target="_blank" rel="noreferrer">View Repository</a>
+        </div>
+    `).join("");
+}
+
+export function showRepositoryLoading(): void {
+    getElement("repository-loading").classList.add("show");
+}
+
+export function hideRepositoryLoading(): void {
+    getElement("repository-loading").classList.remove("show");
+}
+
+export function renderRepositoryStatus(message: string): void {
+    getElement("repository-status").textContent = message;
+}
+
+export function renderRepositoryPagination(currentPage: number, totalPages: number): void {
+    getElement("repository-page-info").textContent = `Page ${currentPage} of ${totalPages}`;
+    getElement<HTMLButtonElement>("repository-previous-btn").disabled = currentPage === 1;
+    getElement<HTMLButtonElement>("repository-next-btn").disabled = currentPage >= totalPages;
 }

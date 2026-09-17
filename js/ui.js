@@ -45,10 +45,10 @@ export function renderUsers(users, onUserClick) {
         container.appendChild(card);
     });
 }
-export function renderPagination(currentPage, totalPages) {
-    getElement("page-info").textContent = `Page ${currentPage} of ${totalPages}`;
+export function renderPagination(currentPage, hasNextPage) {
+    getElement("page-info").textContent = `Page ${currentPage}`;
     getElement("previous-btn").disabled = currentPage === 1;
-    getElement("next-btn").disabled = currentPage === totalPages;
+    getElement("next-btn").disabled = !hasNextPage;
 }
 export function showDetailsLoading() {
     getElement("details-loading").classList.add("show");
@@ -106,4 +106,35 @@ export function renderRepositories(repositories) {
             <a href="${repository.url}" target="_blank">View Repository</a>
         </div>
     `).join("");
+}
+export function renderRepositorySearchResults(repositories) {
+    const container = getElement("repository-results");
+    if (repositories.length === 0) {
+        container.innerHTML = '<div class="empty-message">No repositories found.</div>';
+        return;
+    }
+    container.innerHTML = repositories.map((repository) => `
+        <div class="item-card">
+            <h3>${repository.name}</h3>
+            <p>${repository.description ?? "No description"}</p>
+            <p><strong>Owner:</strong> ${repository.ownerLogin}</p>
+            <p><strong>Language:</strong> ${repository.language ?? "Unknown"}</p>
+            <p><strong>Stars:</strong> ${repository.stars}</p>
+            <a href="${repository.url}" target="_blank" rel="noreferrer">View Repository</a>
+        </div>
+    `).join("");
+}
+export function showRepositoryLoading() {
+    getElement("repository-loading").classList.add("show");
+}
+export function hideRepositoryLoading() {
+    getElement("repository-loading").classList.remove("show");
+}
+export function renderRepositoryStatus(message) {
+    getElement("repository-status").textContent = message;
+}
+export function renderRepositoryPagination(currentPage, totalPages) {
+    getElement("repository-page-info").textContent = `Page ${currentPage} of ${totalPages}`;
+    getElement("repository-previous-btn").disabled = currentPage === 1;
+    getElement("repository-next-btn").disabled = currentPage >= totalPages;
 }

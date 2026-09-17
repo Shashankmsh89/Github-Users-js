@@ -12,8 +12,8 @@ export async function apiRequest(url) {
     }
 }
 export class ApiService {
-    async fetchUsers() {
-        const githubResult = await apiRequest("https://api.github.com/users?per_page=30");
+    async fetchUsers(page) {
+        const githubResult = await apiRequest(`https://api.github.com/users?per_page=10&page=${page}`);
         let usersResult = githubResult;
         if (!githubResult.success) {
             usersResult = await apiRequest("./data/db.json");
@@ -29,6 +29,13 @@ export class ApiService {
                 avatar: user.avatar_url
             }))
         };
+    }
+    async searchRepositories(query, page) {
+        const url = new URL("https://api.github.com/search/repositories");
+        url.searchParams.set("q", query);
+        url.searchParams.set("page", String(page));
+        url.searchParams.set("per_page", "10");
+        return apiRequest(url.toString());
     }
     async fetchFollowers(login) {
         const url = new URL(`https://api.github.com/users/${login}/followers`);

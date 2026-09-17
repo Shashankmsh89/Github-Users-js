@@ -1,23 +1,24 @@
 import { ApiService, UserListItem } from "./api.js";
 import { renderUsers, renderPagination, showLoading, hideLoading, showError } from "./ui.js";
 import {
-    filterUsersByLoginLength,
     resetPage,
-    getPaginatedUsers,
     getCurrentPage,
-    getTotalPages,
     nextPage,
-    previousPage
+    previousPage,
+    USERS_PER_PAGE
 } from "./users.js";
 
-let allUsers: UserListItem[] = [];
-let filteredUsers: UserListItem[] = [];
+type SortDirection = "asc" | "desc";
+
+let currentUsers: UserListItem[] = [];
+let searchText = "";
+let sortDirection: SortDirection = "asc";
 const apiService = new ApiService();
 
-async function loadUsers(): Promise<void> {
+async function loadUsers(page: number): Promise<void> {
     showLoading();
     try {
-        const result = await apiService.fetchUsers();
+        const result = await apiService.fetchUsers(page);
         if (!result.success) {
             showError(result.error);
             getElement<HTMLParagraphElement>("user-count").textContent = result.error;
@@ -25,10 +26,8 @@ async function loadUsers(): Promise<void> {
             return;
         }
 
-        allUsers = result.data;
-        filteredUsers = filterUsersByLoginLength(allUsers, 4);
-        getElement<HTMLParagraphElement>("user-count").textContent = `Users fetched: ${allUsers.length}`;
-        getElement<HTMLParagraphElement>("filtered-count").textContent = `Users remaining: ${filteredUsers.length}`;
+        currentUsers = result.data;
+        getElement<HTMLParagraphElement>("user-count").textContent = `Users fetched: ${currentUsers.length}`;
         renderPage();
     } catch (error: unknown) {
         console.error(error);
@@ -49,8 +48,17 @@ function getElement<T extends HTMLElement>(id: string): T {
 }
 
 function renderPage(): void {
-    renderUsers(getPaginatedUsers(filteredUsers), handleUserClick);
-    renderPagination(getCurrentPage(), getTotalPages(filteredUsers));
+    const visibleUsers = currentUsers
+        .filter((user) => user.login.toLowerCase().includes(searchText.toLowerCase()))
+        .slice()
+        .sort((first, second) => {
+            const comparison = first.login.localeCompare(second.login);
+            return sortDirection === "asc" ? comparison : -comparison;
+        });
+
+    getElement<HTMLParagraphElement>("filtered-count").textContent = `Users shown: ${visibleUsers.length}`;
+    renderUsers(visibleUsers, handleUserClick);
+    renderPagination(getCurrentPage(), currentUsers.length === USERS_PER_PAGE);
 }
 
 function handleUserClick(user: UserListItem): void {
@@ -60,23 +68,29 @@ function handleUserClick(user: UserListItem): void {
 
 getElement<HTMLButtonElement>("next-btn").addEventListener("click", (event: MouseEvent) => {
     event.preventDefault();
-    nextPage(filteredUsers);
-    renderPage();
+    if (currentUsers.length === USERS_PER_PAGE) {
+        nextPage(true);
+        void loadUsers(getCurrentPage());
+    }
 });
 
 getElement<HTMLButtonElement>("previous-btn").addEventListener("click", (event: MouseEvent) => {
     event.preventDefault();
     previousPage();
+    void loadUsers(getCurrentPage());
+});
+
+function handleSearchInput(event: InputEvent): void {
+    searchText = (event.target as HTMLInputElement).value;
+    renderPage();
+}
+
+getElement<HTMLInputElement>("user-search").addEventListener("input", handleSearchInput as EventListener);
+
+getElement<HTMLSelectElement>("sort-direction").addEventListener("change", (event: Event) => {
+    sortDirection = (event.target as HTMLSelectElement).value as SortDirection;
     renderPage();
 });
 
-getElement<HTMLButtonElement>("apply-filter").addEventListener("click", (event: MouseEvent) => {
-    event.preventDefault();
-    const minimumLength = Number(getElement<HTMLInputElement>("login-length").value);
-    filteredUsers = filterUsersByLoginLength(allUsers, minimumLength);
-    resetPage();
-    getElement<HTMLParagraphElement>("filtered-count").textContent = `Users remaining: ${filteredUsers.length}`;
-    renderPage();
-});
-
-loadUsers();
+resetPage();
+void loadUsers(getCurrentPage());

@@ -1,18 +1,10 @@
-const USERS_PER_PAGE = 5;
+export const USERS_PER_PAGE = 10;
 let currentPage = 1;
-export function getPaginatedUsers(users) {
-    const start = (currentPage - 1) * USERS_PER_PAGE;
-    return users.slice(start, start + USERS_PER_PAGE);
-}
 export function getCurrentPage() {
     return currentPage;
 }
-export function getTotalPages(users) {
-    return Math.ceil(users.length / USERS_PER_PAGE);
-}
-export function nextPage(users) {
-    const totalPages = getTotalPages(users);
-    if (currentPage < totalPages) {
+export function nextPage(hasNextPage) {
+    if (hasNextPage) {
         currentPage++;
     }
 }
@@ -23,7 +15,4 @@ export function previousPage() {
 }
 export function resetPage() {
     currentPage = 1;
-}
-export function filterUsersByLoginLength(users, minimumLength) {
-    return users.filter((user) => user.login.length >= minimumLength);
 }

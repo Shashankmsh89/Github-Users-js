@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repository Search - GitHub Users</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+    <main>
+        <h1>Repository Search</h1>
+
+        <form id="repository-search-form">
+            <label for="repository-query">Search repositories:</label>
+            <input type="search" id="repository-query" placeholder="Search GitHub repositories">
+            <button type="submit">Search</button>
+        </form>
+
+        <div id="repository-status" role="status"></div>
+        <div id="repository-loading" class="loading-skeleton">
+            <div class="skeleton-card">
+                <div class="skeleton-text">
+                    <div class="skeleton-line long"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+        </div>
+        <div id="repository-results" class="items-grid"></div>
+    </main>
+
+    <div id="repository-pagination">
+        <button id="repository-previous-btn" disabled>Previous</button>
+        <span id="repository-page-info">Page 1 of 1</span>
+        <button id="repository-next-btn" disabled>Next</button>
+    </div>
+
+    <script type="module" src="./js/repositories.js"></script>
+</body>
+
+</html>
